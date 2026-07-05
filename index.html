@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>הזמנה לנעם</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;600;700&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body { height: 100%; }
+
+  body {
+    font-family: 'Heebo', sans-serif;
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #ffdde1 0%, #ee9ca7 50%, #f6d5a8 100%);
+    background-size: 200% 200%;
+    animation: bgshift 12s ease infinite;
+    overflow: hidden;
+    padding: 16px;
+  }
+
+  @keyframes bgshift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  .stage {
+    position: relative;
+    width: 340px;
+    max-width: min(90vw, 340px);
+  }
+
+  .envelope {
+    position: relative;
+    width: 100%;
+    height: clamp(160px, 55vw, 220px);
+    cursor: pointer;
+    transition: transform 0.4s ease;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .envelope:hover { transform: scale(1.03); }
+
+  .envelope-body {
+    position: absolute;
+    inset: 0;
+    background: #fffaf3;
+    border-radius: 10px;
+    box-shadow: 0 15px 35px rgba(150, 60, 70, 0.25);
+    overflow: hidden;
+  }
+
+  .flap {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 0;
+    border-left: clamp(80px, 25vw, 170px) solid transparent;
+    border-right: clamp(80px, 25vw, 170px) solid transparent;
+    border-top: clamp(55px, 16vw, 110px) solid #f3c6cf;
+    transform-origin: top;
+    transition: transform 0.9s cubic-bezier(.6,-0.28,.74,.05);
+    z-index: 3;
+  }
+  .envelope.open .flap {
+    transform: rotateX(180deg);
+  }
+
+  .pocket-left, .pocket-right {
+    position: absolute;
+    bottom: 0;
+    width: 0; height: 0;
+    border-bottom: clamp(65px, 19vw, 130px) solid #f7d9df;
+  }
+  .pocket-left {
+    left: 0;
+    border-left: clamp(80px, 25vw, 170px) solid transparent;
+  }
+  .pocket-right {
+    right: 0;
+    border-right: clamp(80px, 25vw, 170px) solid transparent;
+  }
+
+  .heart-seal {
+    position: absolute;
+    top: clamp(48px, 15vw, 95px); left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: clamp(24px, 7vw, 34px);
+    z-index: 4;
+    transition: opacity 0.3s ease;
+  }
+  .envelope.open .heart-seal { opacity: 0; }
+
+  .to-name {
+    position: absolute;
+    bottom: 24px; left: 0; right: 0;
+    text-align: center;
+    font-size: 15px;
+    color: #b5606f;
+    letter-spacing: 1px;
+    z-index: 2;
+  }
+
+  .hint {
+    text-align: center;
+    margin-top: 18px;
+    color: #8a4a55;
+    font-size: 13px;
+    opacity: 0.8;
+  }
+
+  .letter {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    max-height: 80vh;
+    overflow-y: auto;
+    background: #fffdf9;
+    border-radius: 14px;
+    padding: clamp(24px, 7vw, 34px) clamp(18px, 6vw, 28px) 24px;
+    box-shadow: 0 20px 45px rgba(150, 60, 70, 0.3);
+    opacity: 0;
+    transform: translateY(40px) scale(0.9);
+    pointer-events: none;
+    transition: all 0.7s cubic-bezier(.2,.8,.2,1);
+    z-index: 5;
+  }
+  .letter.show {
+    opacity: 1;
+    transform: translateY(-30px) scale(1);
+    pointer-events: auto;
+  }
+
+  .letter h1 {
+    font-size: clamp(19px, 5.5vw, 22px);
+    color: #c85c72;
+    margin-bottom: 14px;
+    text-align: center;
+  }
+
+  .letter p {
+    font-size: clamp(14px, 4.2vw, 16px);
+    line-height: 1.9;
+    color: #4a3a3d;
+    margin-bottom: 12px;
+  }
+
+  .details {
+    margin-top: 18px;
+    background: #fbeef0;
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-size: clamp(13px, 3.8vw, 15px);
+    color: #8a4a55;
+    line-height: 1.9;
+  }
+
+  .details strong { color: #c85c72; }
+
+  .close-btn {
+    position: absolute;
+    top: 6px; left: 6px;
+    background: none;
+    border: none;
+    color: #c8a2a9;
+    font-size: 18px;
+    cursor: pointer;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+</style>
+</head>
+<body>
+
+<div class="stage" id="stage">
+  <div class="envelope" id="envelope" onclick="openEnvelope()">
+    <div class="pocket-left"></div>
+    <div class="pocket-right"></div>
+    <div class="envelope-body"></div>
+    <div class="flap" id="flap"></div>
+    <div class="heart-seal">💌</div>
+    <div class="to-name">בשביל נעם ✨</div>
+  </div>
+  <div class="hint" id="hint">תלחצי עליי</div>
+
+  <div class="letter" id="letter">
+    <button class="close-btn" onclick="closeLetter()">✕</button>
+    <h1>נעם היקרה 🎂</h1>
+    <p>
+      לכבוד היום הולדת, אני קובע לנו דייט, אוכל טוב,
+      אז תבואי רעבה.
+    </p>
+    <div class="details">
+      📅 <strong>מתי:</strong> תאריך ושעה יקבעו ביום חמישי לאחר שיבוץ עבודה שלך<br>
+      📍 <strong>איפה:</strong> הפתעה - תסמכי עליי<br>
+      👗 <strong>מה להביא:</strong> לבוש יפה נוח ומצב רוח טוב
+    </div>
+  </div>
+</div>
+
+<script>
+function openEnvelope() {
+  const env = document.getElementById('envelope');
+  const letter = document.getElementById('letter');
+  const hint = document.getElementById('hint');
+  if (env.classList.contains('open')) return;
+  env.classList.add('open');
+  hint.style.opacity = '0';
+  setTimeout(() => {
+    letter.classList.add('show');
+  }, 500);
+}
+
+function closeLetter() {
+  const env = document.getElementById('envelope');
+  const letter = document.getElementById('letter');
+  const hint = document.getElementById('hint');
+  letter.classList.remove('show');
+  setTimeout(() => {
+    env.classList.remove('open');
+    hint.style.opacity = '0.8';
+  }, 400);
+}
+</script>
+
+</body>
+</html>
