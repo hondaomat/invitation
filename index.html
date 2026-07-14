@@ -10,6 +10,7 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
   html, body { height: 100%; }
+
   body {
     font-family: 'Heebo', sans-serif;
     min-height: 100vh;
@@ -115,23 +116,37 @@
   }
 
   .letter {
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    max-height: 80vh;
+    position: fixed;
+    top: 50%; left: 50%;
+    width: min(90vw, 340px);
+    max-height: 85vh;
     overflow-y: auto;
     background: #fffdf9;
     border-radius: 14px;
     padding: clamp(24px, 7vw, 34px) clamp(18px, 6vw, 28px) 24px;
-    box-shadow: 0 20px 45px rgba(150, 60, 70, 0.3);
+    box-shadow: 0 20px 45px rgba(150, 60, 70, 0.35);
     opacity: 0;
-    transform: translateY(40px) scale(0.9);
+    transform: translate(-50%, -50%) scale(0.85);
     pointer-events: none;
     transition: all 0.7s cubic-bezier(.2,.8,.2,1);
-    z-index: 5;
+    z-index: 20;
   }
   .letter.show {
     opacity: 1;
-    transform: translateY(-30px) scale(1);
+    transform: translate(-50%, -50%) scale(1);
+    pointer-events: auto;
+  }
+
+  .overlay-bg {
+    position: fixed;
+    inset: 0;
+    background: rgba(60, 30, 35, 0);
+    pointer-events: none;
+    transition: background 0.5s ease;
+    z-index: 10;
+  }
+  .overlay-bg.show {
+    background: rgba(60, 30, 35, 0.35);
     pointer-events: auto;
   }
 
@@ -160,6 +175,43 @@
   }
 
   .details strong { color: #c85c72; }
+
+  .countdown {
+    margin-top: 4px;
+    text-align: center;
+  }
+
+  .countdown-label {
+    font-size: 12px;
+    color: #b5606f;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+
+  .countdown-grid {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .countdown-unit {
+    background: #fbeef0;
+    border-radius: 10px;
+    padding: 8px 6px;
+    min-width: 44px;
+  }
+
+  .countdown-unit .num {
+    font-size: clamp(16px, 5vw, 20px);
+    font-weight: 700;
+    color: #c85c72;
+    display: block;
+  }
+
+  .countdown-unit .lbl {
+    font-size: 10px;
+    color: #a56a75;
+  }
 
   .close-btn {
     position: absolute;
@@ -190,17 +242,28 @@
   </div>
   <div class="hint" id="hint">תלחצי עליי</div>
 
+  <div class="overlay-bg" id="overlayBg" onclick="closeLetter()"></div>
+
   <div class="letter" id="letter">
     <button class="close-btn" onclick="closeLetter()">✕</button>
     <h1>נעם היקרה 🎂</h1>
-    <p>
-      לכבוד היום הולדת, אני קובע לנו דייט, אוכל טוב,
-      אז תבואי רעבה.
-    </p>
+
+    <div class="countdown" id="countdown">
+      <div class="countdown-label">נותרו עד הדייט</div>
+      <div class="countdown-grid">
+        <div class="countdown-unit"><span class="num" id="cd-days">--</span><span class="lbl">ימים</span></div>
+        <div class="countdown-unit"><span class="num" id="cd-hours">--</span><span class="lbl">שעות</span></div>
+        <div class="countdown-unit"><span class="num" id="cd-mins">--</span><span class="lbl">דקות</span></div>
+        <div class="countdown-unit"><span class="num" id="cd-secs">--</span><span class="lbl">שניות</span></div>
+      </div>
+    </div>
+
     <div class="details">
-      📅 <strong>מתי:</strong> תאריך ושעה יקבעו ביום חמישי לאחר שיבוץ עבודה שלך<br>
+      📅 <strong>מתי:</strong> יום חמישי, 22:00<br>
+      🚗 <strong>שעת איסוף:</strong> 21:30<br>
       📍 <strong>איפה:</strong> הפתעה - תסמכי עליי<br>
-      👗 <strong>מה להביא:</strong> לבוש יפה נוח ומצב רוח טוב
+      🍝 <strong>סגנון אוכל:</strong> איטלקי 🇮🇹<br>
+      👗 <strong>מה להביא:</strong> לבוש יפה ומצב רוח טוב
     </div>
   </div>
 </div>
@@ -210,9 +273,11 @@ function openEnvelope() {
   const env = document.getElementById('envelope');
   const letter = document.getElementById('letter');
   const hint = document.getElementById('hint');
+  const overlay = document.getElementById('overlayBg');
   if (env.classList.contains('open')) return;
   env.classList.add('open');
   hint.style.opacity = '0';
+  overlay.classList.add('show');
   setTimeout(() => {
     letter.classList.add('show');
   }, 500);
@@ -222,12 +287,45 @@ function closeLetter() {
   const env = document.getElementById('envelope');
   const letter = document.getElementById('letter');
   const hint = document.getElementById('hint');
+  const overlay = document.getElementById('overlayBg');
   letter.classList.remove('show');
+  overlay.classList.remove('show');
   setTimeout(() => {
     env.classList.remove('open');
     hint.style.opacity = '0.8';
   }, 400);
 }
+
+// Countdown to next Thursday 22:00
+function getNextThursday10PM() {
+  const now = new Date();
+  const result = new Date(now);
+  const day = now.getDay(); // 0=Sun ... 4=Thu
+  let diff = (4 - day + 7) % 7;
+  result.setDate(now.getDate() + diff);
+  result.setHours(22, 0, 0, 0);
+  if (result <= now) {
+    result.setDate(result.getDate() + 7);
+  }
+  return result;
+}
+
+function updateCountdown() {
+  const target = getNextThursday10PM();
+  const now = new Date();
+  const diffMs = target - now;
+  if (diffMs <= 0) return;
+  const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diffMs / (1000 * 60 * 60)) % 24);
+  const mins = Math.floor((diffMs / (1000 * 60)) % 60);
+  const secs = Math.floor((diffMs / 1000) % 60);
+  document.getElementById('cd-days').textContent = days;
+  document.getElementById('cd-hours').textContent = hours;
+  document.getElementById('cd-mins').textContent = mins;
+  document.getElementById('cd-secs').textContent = secs;
+}
+updateCountdown();
+setInterval(updateCountdown, 1000);
 </script>
 
 </body>
